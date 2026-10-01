@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinder & Jugend – Aktuelles</title>
+    <style>
+        /* ── Website-Schriften (Snappages CDN, aus dem <head> von gemeinde-konkordia.de) ── */
+        @font-face {
+            font-family: 'public-sans-v21-latin-regular';
+            src: url('https://storage1.snappages.site/S74RKH/assets/files/public-sans-v21-latin-regular.woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'public-sans-v21-latin-500';
+            src: url('https://storage1.snappages.site/S74RKH/assets/files/public-sans-v21-latin-500.woff2');
+            font-display: swap;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --text-color: #1e1b16;
+            --text-muted: #6b6459;
+            --accent: #bb2232;      /* Konkordia Logo-Rot */
+            --badge-bg: #f7dde1;    /* Helles Rot, aus --accent abgeleitet */
+            --card-bg: #ffffff;
+            --border: #ece6d9;
+        }
+
+        body {
+            font-family: 'public-sans-v21-latin-regular', -apple-system, BlinkMacSystemFont,
+                         'Segoe UI', system-ui, sans-serif;
+            background: transparent;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+
+        #aktuelles-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px;
+        }
+
+        #aktuelles-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .aktuelles-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .aktuelles-badge {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            background: var(--badge-bg);
+            color: var(--accent);
+            text-align: center;
+            padding: 4px;
+        }
+        .aktuelles-badge .day { font-size: 17px; font-weight: 500; line-height: 1.1; }
+        .aktuelles-badge .day.small { font-size: 12px; line-height: 1.2; }
+        .aktuelles-badge .month { font-size: 10px; letter-spacing: 0.05em; margin-top: 2px; }
+
+        .aktuelles-card-title {
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.35;
+            margin: 0;
+        }
+
+        .aktuelles-card-meta {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin: -4px 0 0;
+        }
+
+        .aktuelles-card-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-muted);
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .aktuelles-card-link {
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1.5px solid var(--accent);
+            padding-bottom: 1px;
+            align-self: flex-start;
+        }
+        .aktuelles-card-link:hover { opacity: 0.75; }
+
+        #aktuelles-status {
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 12px 0;
+        }
+
+        @media (max-width: 860px) {
+            #aktuelles-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div id="aktuelles-container">
+    <div id="aktuelles-grid"></div>
+    <div id="aktuelles-status"></div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const grid   = document.getElementById('aktuelles-grid');
+    const status = document.getElementById('aktuelles-status');
+    const MONTHS = ['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function truncate(str, max) {
+        const clean = (str || '').replace(/\*\*/g, '').replace(/\n+/g, ' ').trim();
+        if (clean.length <= max) return clean;
+        return clean.slice(0, max).replace(/\s+\S*$/, '') + ' …';
+    }
+
+    function dateBadge(date) {
+        return { day: String(date.getDate()).padStart(2, '0'), month: MONTHS[date.getMonth()] };
+    }
+
+    function formatTime(startDateStr, startDate, endDate) {
+        const isAllDay = !startDateStr.includes('T');
+        if (isAllDay) return '';
+        const opts = { hour: '2-digit', minute: '2-digit' };
+        const from = startDate.toLocaleTimeString('de-DE', opts);
+        const to   = endDate.toLocaleTimeString('de-DE', opts);
+        return from === to ? `${from} Uhr` : `${from} – ${to} Uhr`;
+    }
+
+    // Ankündigungen haben nur ein freies Text-Datumsfeld (oder gar keins) –
+    // liefert trotzdem immer einen Badge, damit alle Karten gleich hoch starten.
+    function freeTextBadge(datum) {
+        const clean = (datum || '').trim();
+        if (!clean) return { day: 'NEU', month: '', small: false };
+        return { day: truncate(clean, 10), month: '', small: true };
+    }
+
+    function cardHTML({ badge, title, meta, desc, link, linkText }) {
+        const badgeHTML = `
+            <div class="aktuelles-badge">
+                <div class="day${badge.small ? ' small' : ''}">${escapeHtml(badge.day)}</div>
+                ${badge.month ? `<div class="month">${escapeHtml(badge.month)}</div>` : ''}
+            </div>`;
+        const metaHTML = meta ? `<div class="aktuelles-card-meta">${escapeHtml(meta)}</div>` : '';
+        const linkHTML = link
+            ? `<a class="aktuelles-card-link" href="${escapeHtml(link)}" target="_blank" rel="noopener">${escapeHtml(linkText || 'Mehr erfahren')} →</a>`
+            : '';
+        return `
+            <div class="aktuelles-card">
+                ${badgeHTML}
+                <h3 class="aktuelles-card-title">${escapeHtml(title)}</h3>
+                ${metaHTML}
+                <p class="aktuelles-card-desc">${escapeHtml(desc)}</p>
+                ${linkHTML}
+            </div>`;
+    }
+
+    async function loadJSON(path) {
+        const res = await fetch(path, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status} bei ${path}`);
+        return res.json();
+    }
+
+    async function render() {
+        try {
+            const [termine, ankuendigungen] = await Promise.all([
+                loadJSON('data/termine.json').catch(() => []),
+                loadJSON('data/ankuendigungen.json').catch(() => [])
+            ]);
+
+            const now = new Date();
+            const naechsterTermin = termine
+                .filter(t => t.startDate && new Date(t.startDate) >= now)
+                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))[0];
+
+            const highlights = ankuendigungen.filter(a => a.startseite === true).slice(0, 2);
+
+            const cards = [];
+
+            if (naechsterTermin) {
+                const start = new Date(naechsterTermin.startDate);
+                const end   = new Date(naechsterTermin.endDate || naechsterTermin.startDate);
+                cards.push(cardHTML({
+                    badge: dateBadge(start),
+                    title: naechsterTermin.title || 'Termin',
+                    meta: formatTime(naechsterTermin.startDate, start, end),
+                    desc: truncate(naechsterTermin.description, 90),
+                    link: naechsterTermin.link || 'https://www.gemeinde-konkordia.de/news#termine',
+                    linkText: naechsterTermin.link ? 'Mehr erfahren' : 'Zu den Terminen'
+                }));
+            }
+
+            highlights.forEach(item => {
+                cards.push(cardHTML({
+                    badge: freeTextBadge(item.datum),
+                    title: item.titel || 'Ankündigung',
+                    desc: truncate(item.beschreibung, 90),
+                    link: item.link || '',
+                    linkText: item.linkText
+                }));
+            });
+
+            if (cards.length === 0) {
+                status.textContent = 'Aktuell keine News verfügbar.';
+                return;
+            }
+
+            grid.innerHTML = cards.join('');
+        } catch (err) {
+            console.error('Fehler beim Laden von "Aktuelles":', err);
+            status.textContent = 'Inhalte konnten nicht geladen werden.';
+        }
+    }
+
+    render();
+
+    function sendHeight() {
+        const height = Math.ceil(document.getElementById('aktuelles-container').getBoundingClientRect().height);
+        window.parent.postMessage({ type: 'aktuelles-resize', height: height }, '*');
+    }
+    window.addEventListener('load', sendHeight);
+    const resizeObserver = new ResizeObserver(sendHeight);
+    resizeObserver.observe(document.getElementById('aktuelles-container'));
+})();
+</script>
+</body>
+</html>

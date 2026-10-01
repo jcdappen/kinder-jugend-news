@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinder & Jugend News</title>
+    <style>
+        /* ── Website-Schriften (Snappages CDN, aus dem <head> von gemeinde-konkordia.de) ── */
+        @font-face {
+            font-family: 'public-sans-v21-latin-regular';
+            src: url('https://storage1.snappages.site/S74RKH/assets/files/public-sans-v21-latin-regular.woff2');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'public-sans-v21-latin-500';
+            src: url('https://storage1.snappages.site/S74RKH/assets/files/public-sans-v21-latin-500.woff2');
+            font-display: swap;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #bb2232;
+            --primary-dark: #70141e;
+            --text-color: #1a202c;
+            --text-meta: #000000;
+            --text-desc: #4a5568;
+            --border-color: #e2e8f0;
+            --page-bg: #faeec7;
+        }
+
+        body {
+            font-family: 'public-sans-v21-latin-regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui,
+                         'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: transparent;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            overflow-wrap: break-word;
+        }
+
+        #ankuendigungen-wrapper {
+            container-type: inline-size;
+            background: var(--page-bg);
+            padding: 40px 0;
+        }
+
+        #ankuendigungen-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            padding: 0;
+        }
+
+        /* ── Card ── */
+        .ankuendigung-card {
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
+
+        .card-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: #e6e6e6;
+        }
+
+        .card-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-datebadge {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--primary);
+            color: #fff;
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            font-weight: 500;
+            font-size: 15px;
+            letter-spacing: 0.03em;
+            padding: 8px 18px 8px 16px;
+            clip-path: polygon(0 0, 100% 0, 88% 100%, 0% 100%);
+        }
+
+        .card-body {
+            padding: 22px 24px 24px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-titel {
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            font-size: 23px;
+            font-weight: 500;
+            color: var(--primary-dark);
+            line-height: 1.22;
+            margin: 0 0 10px;
+        }
+
+        .card-beschreibung {
+            font-size: 16px;
+            color: var(--text-desc);
+            line-height: 1.55;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-beschreibung.expanded {
+            display: block;
+            -webkit-line-clamp: unset;
+            overflow: visible;
+        }
+
+        .card-beschreibung p {
+            margin: 0 0 0.6em;
+        }
+
+        .card-beschreibung p:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-beschreibung ul {
+            margin: 0.4em 0;
+            padding-left: 1.4em;
+        }
+
+        .card-beschreibung li {
+            margin-bottom: 0.25em;
+        }
+
+        .card-more {
+            display: none;
+            align-self: flex-start;
+            margin: 8px 0 0;
+            padding: 0;
+            border: none;
+            background: none;
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            font-weight: 500;
+            font-size: 13px;
+            color: #4d4d4d;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            cursor: pointer;
+        }
+
+        .card-more.visible {
+            display: inline-block;
+        }
+
+        .card-link {
+            align-self: flex-start;
+            margin-top: 18px;
+            font-family: 'public-sans-v21-latin-500', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            color: #fff;
+            background: var(--primary);
+            text-decoration: none;
+            padding: 12px 22px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-link:hover {
+            background: var(--primary-dark);
+            color: #fff;
+        }
+
+        /* ── Status ── */
+        #ankuendigungen-status {
+            padding: 24px 0 0;
+            color: var(--text-meta);
+            font-size: 15px;
+        }
+
+        #ankuendigungen-status:empty {
+            padding: 0;
+        }
+
+        /* ── Tablet ── */
+        @container (max-width: 1100px) {
+            #ankuendigungen-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ── Mobile ── */
+        @container (max-width: 700px) {
+            #ankuendigungen-wrapper {
+                padding: 24px 0;
+            }
+
+            #ankuendigungen-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+
+            .card-beschreibung {
+                -webkit-line-clamp: 2;
+            }
+
+            .card-titel { font-size: 20px; }
+
+            .card-body { padding: 16px 18px 18px; }
+        }
+    </style>
+</head>
+<body>
+<div id="ankuendigungen-wrapper">
+    <div id="ankuendigungen-grid"></div>
+    <div id="ankuendigungen-status"></div>
+</div>
+
+<script>
+(function () {
+    'use strict';
+
+    const grid   = document.getElementById('ankuendigungen-grid');
+    const status = document.getElementById('ankuendigungen-status');
+    const PLACEHOLDER = 'assets/images/placeholder.jpg';
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    function renderMarkdown(str) {
+        if (!str) return '';
+        // Escape HTML first for safety, then apply formatting
+        let s = escapeHtml(str);
+
+        // Split into blocks by double newline (paragraphs)
+        const blocks = s.split(/\n{2,}/);
+        const rendered = blocks.map(block => {
+            const lines = block.split('\n');
+
+            // Check if all non-empty lines are bullet points
+            const bulletLines = lines.filter(l => l.trim() !== '');
+            const isList = bulletLines.length > 0 && bulletLines.every(l => /^[•\-]/.test(l.trim()));
+
+            if (isList) {
+                const items = lines
+                    .filter(l => l.trim() !== '')
+                    .map(l => `<li>${applyInline(l.replace(/^[•\-]\s*/, ''))}</li>`)
+                    .join('');
+                return `<ul>${items}</ul>`;
+            }
+
+            // Regular paragraph — single newlines become <br>
+            const content = lines.map(l => applyInline(l)).join('<br>');
+            return `<p>${content}</p>`;
+        });
+
+        return rendered.join('');
+    }
+
+    function applyInline(s) {
+        return s
+            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.+?)\*/g, '<em>$1</em>');
+    }
+
+    async function loadAnnouncements() {
+        status.textContent = 'Lade News …';
+
+        try {
+            const res = await fetch('data/ankuendigungen.json', { cache: 'no-store' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const items = await res.json();
+            render(items);
+        } catch (err) {
+            console.error('Fehler beim Laden der Ankündigungen:', err);
+            status.textContent = 'News konnten nicht geladen werden.';
+        }
+    }
+
+    function render(items) {
+        status.textContent = '';
+        grid.innerHTML = '';
+
+        if (!items.length) {
+            status.textContent = 'Aktuell keine News vorhanden.';
+            return;
+        }
+
+        items.forEach(item => {
+            const bild  = escapeHtml(item.bild || PLACEHOLDER);
+            const titel = escapeHtml(item.titel || '');
+            const datum = escapeHtml(item.datum || '');
+            const desc  = renderMarkdown(item.beschreibung || '');
+            const link      = escapeHtml(item.link || '');
+            const linkText  = escapeHtml(item.linkText || 'Mehr erfahren');
+
+            const card = document.createElement('div');
+            card.className = 'ankuendigung-card';
+            card.innerHTML = `
+                <div class="card-media">
+                    <img
+                        src="${bild}"
+                        alt="${titel}"
+                        loading="lazy"
+                        onerror="this.src='${PLACEHOLDER}'; this.onerror=null;"
+                    >
+                    ${datum ? `<div class="card-datebadge">${datum}</div>` : ''}
+                </div>
+                <div class="card-body">
+                    <div class="card-titel">${titel}</div>
+                    ${desc ? `<div class="card-beschreibung">${desc}</div>` : ''}
+                    ${desc ? `<button type="button" class="card-more">mehr anzeigen</button>` : ''}
+                    ${link ? `<a class="card-link" href="${link}" target="_blank" rel="noopener">${linkText} &rarr;</a>` : ''}
+                </div>
+            `;
+            grid.appendChild(card);
+
+            const descEl = card.querySelector('.card-beschreibung');
+            const moreBtn = card.querySelector('.card-more');
+            if (descEl && moreBtn) {
+                setupMoreToggle(descEl, moreBtn);
+            }
+        });
+
+        sendHeight();
+    }
+
+    // Zeigt "mehr anzeigen" nur, wenn der Text tatsächlich abgeschnitten wird,
+    // und schaltet zwischen gekürzter und voller Ansicht um.
+    function setupMoreToggle(descEl, moreBtn) {
+        requestAnimationFrame(() => {
+            if (descEl.scrollHeight > descEl.clientHeight + 1) {
+                moreBtn.classList.add('visible');
+            }
+        });
+
+        moreBtn.addEventListener('click', () => {
+            const expanded = descEl.classList.toggle('expanded');
+            moreBtn.textContent = expanded ? 'weniger anzeigen' : 'mehr anzeigen';
+            sendHeight();
+        });
+    }
+
+    function sendHeight() {
+        window.parent.postMessage(
+            { type: 'ankuendigungen-resize', height: document.body.scrollHeight },
+            '*'
+        );
+    }
+
+    window.addEventListener('load', sendHeight);
+    const resizeObserver = new ResizeObserver(sendHeight);
+    resizeObserver.observe(document.body);
+
+    loadAnnouncements();
+})();
+</script>
+</body>
+</html>
