@@ -202,32 +202,11 @@
 
     async function render() {
         try {
-            const [termine, ankuendigungen] = await Promise.all([
-                loadJSON('data/termine.json').catch(() => []),
-                loadJSON('data/ankuendigungen.json').catch(() => [])
-            ]);
-
-            const now = new Date();
-            const naechsterTermin = termine
-                .filter(t => t.startDate && new Date(t.startDate) >= now)
-                .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))[0];
+            const ankuendigungen = await loadJSON('data/ankuendigungen.json').catch(() => []);
 
             const highlights = ankuendigungen.filter(a => a.startseite === true).slice(0, 2);
 
             const cards = [];
-
-            if (naechsterTermin) {
-                const start = new Date(naechsterTermin.startDate);
-                const end   = new Date(naechsterTermin.endDate || naechsterTermin.startDate);
-                cards.push(cardHTML({
-                    badge: dateBadge(start),
-                    title: naechsterTermin.title || 'Termin',
-                    meta: formatTime(naechsterTermin.startDate, start, end),
-                    desc: truncate(naechsterTermin.description, 90),
-                    link: naechsterTermin.link || 'https://www.gemeinde-konkordia.de/news#termine',
-                    linkText: naechsterTermin.link ? 'Mehr erfahren' : 'Zu den Terminen'
-                }));
-            }
 
             highlights.forEach(item => {
                 cards.push(cardHTML({
