@@ -3,6 +3,7 @@
     "titel": "Jugendabend",
     "datum": "Freitags | 19:00 Uhr | Konkordia",
     "beschreibung": "Treffpunkt für Jugendliche ab 13 Jahren mit Spiel, Snacks, Input und Zeit zum Reden. Bring gern Freunde mit.",
+    "bild": "assets/images/ankuendigungen/frauenf-1791818933509.jpg",
     "link": "https://www.gemeinde-konkordia.de/jugend",
     "linkText": "Mehr erfahren"
   },
@@ -10,6 +11,7 @@
     "titel": "Kinderstunde",
     "datum": "Sonntags | 10:00 Uhr | Konkordia",
     "beschreibung": "Jeden Sonntag parallel zum Gottesdienst: Geschichten, Lieder und Basteln für Kinder von 3 bis 11 Jahren.\n\n• Biblische Geschichten\n• Singen und Spielen\n• Kreatives Basteln\n\nKomm einfach vorbei, du brauchst dich nicht anzumelden.",
+    "bild": "assets/images/ankuendigungen/1026jd-1791818776089.jpg",
     "startseite": true
   }
 ]
